@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalación de OpenSSH</title>
+</head>
+<body>
+    <header>
+        <h1>Instalación de OpenSSH</h1>
+    </header>
+    <section>
+        <ol>
+            <li>Revisamos si está instalado. Para ello, abrimos PowerShell y ponemos el comando <i>Get-WindowsCapability -Online -Name Open*</i>.
+                Esto revisará todo lo que tenga Open como nombre, y si está instalado. Lo más normal es que no esté instalado el OpenSSH.Server</li>
+            <li>Para instalarlo, usamos el comando <i>Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0</i>. Podemos comprobar nuevamente si se habrá instalado.</li>
+            <li>A continuación, debemos inicializar los servicios ya que estarán parados. Podemos comprobar el estado con <i>Get-Service sshd</i> y <i>Get-Service ssh-agent</i>, que deberían aparecer como Stopped.</li>
+            <li>Para configurarlos, debemos usar los siguientes comandos: <br>Set-Service -Name sshd -StartupType Automatic <br>Set-Service -Name ssh-agent -StartupType Automatic </li>
+            <li>Para inicializar los servicios, usamos: <br> Start-Service sshd <br>Start-Service ssh-agent</li>
+            <li>Ya estaría instalado listo para permitir el acceso remoto.</li>
+        </ol>
+    </section>
+</body>
+</html>
