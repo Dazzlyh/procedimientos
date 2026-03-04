@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementación de Active Directory en Windows</title>
+</head>
+<body>
+    <header>
+        <h1>Instalación de Active Directory en Windows Server 2019</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Configuración previa</h2>
+            <p>Todo se puede realizar a través del apartado "Servidor local":</p>
+            <ol>
+                <li>Cambiar nombre del equipo al que queramos.</li>
+                <li>Establecemos una IP fija.</li>
+                <li>Revisamos que la zona horaria sea la correcta.</li>
+            </ol>
+        </section>
+        <section>
+            <h2>Implementación de Active Directory</h2>
+            <ol>
+                <li>En el panel principal, le damos a "Agregar roles y características. Se desplegará un 
+                    menú y continuamos con la instalación.</li>
+                <li>En el apartado de roles, seleccionamos "Servidor DNS" y "Servicios de dominio de Active Directory". Continuamos e instalamos.</li>
+                <li>Una vez instalado, en la parte superior nos saldrá un aviso. Lo abrimos y le damos a "Promover este servidor a controlador de dominio"</li>
+                <li>Agregamos un nuevo bosque y ponemos el dominio raíz que deseamos (formato xxxx.xxx). Le damos a siguiente.</li>
+                <li>Establecemos una contraseña que cumpla con los requisitos. Le damos a siguiente hasta instalar.</li>
+                <li>El servidor se reiniciará automáticamente y ya estaría implementado.</li>
+            </ol>
+        </section>
+        <section>
+            <h2>Creación de Unidades Organizativas, grupos y usuarios</h2>
+            <ol>
+                <li>Arriba a la derecha, en "Herramientas", seleccionamos la opción de "Usuarios y equipos de Active Directory".</li>
+                <li>Seleccionamos el servidor.</li>
+                <li>Para crear una Unidad Organizativa, damos Click derecho sobre el servidor, "Nuevo" y "Unidad organizativa". La creamos con el nombre correspondiente</li>
+                <li>Si queremos crear un usuario, damos click derecho sobre la UO y nuevo usuario. Cumplimentamos toda la información que nos pide.</li>
+                <li>Para crear un grupo, seguimos la misma dinámica, pero creando el grupo.</li>
+                <li>Si queremos añadir un usuario a un grupo, damos click derecho sobre el usuario y seleccionamos "Agregar a un grupo". Seleccionamos los grupos a los que queremos que pertenezca y aceptamos.</li>
+            </ol>
+        </section>
+    </main>
+</body>
+</html>
