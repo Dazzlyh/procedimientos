@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de una red en Cisco Packet Tracer</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <header>
+        <h1>Cómo configurar una red en Packet Tracer</h1>
+    </header>
+    <section>    
+    <h2>Praparación previa</h2>
+        <p>Identificar las redes. Si tenemos más de un router, miramos cuántos routers tenemos, ya que la red entre routers es una nueva. Tenemos el siguiente ejemplo:
+            <p><img src="../assets/images/par_red_principal.png"></p>
+        La red entre routers solamente va a tener 2 dispositivos (en este caso), por tanto, es un /30, ya que solamente necesitamos 2 bits para 2 redes + IP de Red + Ip Broadcast (4 en total).
+        En las otras subredes, dejaríamos /24 ya que es más probable que existan más dispositivos.
+        </p>
+    </section>
+    <section>
+        <h3>Configuración de la red</h3>
+        <p>
+            <ol>
+                <li>Establecer la IP y máscara de red a cada dispositivo cliente.</li>
+                <li>Establecemos también la IP y la máscara al router (o routers en caso de que haya varios). En el ejemplo de arriba, sería: <ul>
+                    <li>R1: 192.168.1.1</li>
+                    <LI>R2: 192.168.2.1</LI>
+                </ul></li>
+                <li>Ahora toca configurar la IP para cada interfaz. Por ejemplo, en R1:
+                    <ul>
+                        <li>enable</li>
+                        <li>configure terminal</li>
+                        <li>interface GigabitEthernet 0/1 (la interfaz de la red de la izquierda)</li>
+                        <li>ip address 192.168.1.1 255.255.255.0</li>
+                        <li>no shutdown</li>
+                        <li>exit</li>
+                        <li>Esto se repite para cada interfaz de cada router. Para la interfaz 0/0 (la red entre ambos routers) sería 192.168.0.1 255.255.255.252 (al ser /30)</li>
+                    </ul>
+                </li>
+                <li>Una vez establecidas las Gateways, tenemos que configurarla en cada uno de los dispositivos con su correspondiente.</li>
+                <li>Ya tendríamos configurado cada router, pero faltan los saltos. En el ejemplo de arriba: queremos enviar un paquete desde el Server hasta PC4 que está en otra red.
+                    Para ello, el server envía un paquete a nuestro router y sabe a la red que tiene que llegar, pero no como. Por tanto, en los comandos tenemos que indicarle la IP de la red destino,
+                    la máscara de red (de la red destino) y la puerta de enlace (IP del otro router, de R2 en este caso):
+                    <ul>
+                        <li>enable</li>
+                        <li>configure terminal</li>
+                        <li>ip route 192.168.2.0 255.255.255.0 192.168.0.2</li>
+                        <li>Esto se repite con todos los routers para cada red</li>
+                    </ul>
+                </li>
+                <li>Si está todo correctamente, ya podríamos probar a realizar un ping a un dispositivo de otra red, y debería de funcionar.
+                </li>
+            </ol>
+        </p>
+    </section>
+</body>
+</html>
