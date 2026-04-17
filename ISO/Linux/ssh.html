@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurar SSH en Ubuntu/Debian</title>
+    <link rel="stylesheet" href="../../assets/estilos.css">
+</head>
+<body>
+    <h1>Configurar SSH en Ubuntu/Debian</h1>
+    <ol>
+        <li>Revisar el estado del servicio SSH: <i>sudo systemctl status ssh</i></li>
+        <li>En caso de que no esté instalado, debería de indicar que no se ha encontrado.</li>
+        <li><i>sudo apt update</i></li>
+        <li><i>sudo apt install openssh-server -y</i></li>
+        <li><i>sudo systemctl enable ssh</i></li>
+        <li><i>sudo systemctl start ssh</i></li>
+    </ol>
+</body>
+</html>

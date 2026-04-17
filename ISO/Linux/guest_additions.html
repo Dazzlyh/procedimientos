@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalar Guest Additions en Ubuntu/Debian</title>
+    <link rel="stylesheet" href="../../assets/estilos.css">
+</head>
+<body>
+    <h1>Instalar Guest Additions en UBUNTU/DEBIAN</h1>
+    <ol>
+        <li>Actualizar listado de paquetes: <i>sudo apt update</i></li>
+        <li><i>sudo apt install build-essential dkms linux-headers-$(uname -r)</i></li>
+        <li>Insertar disco Guest Additions: Dispositivos -> Insertar imagen de CD de las Guest Additions</li>
+        <li><i>ls /media</i></li>
+        <li><i>cd /media/&USER/VBox_GAs*</i></li>
+        <li><i>sudo sh VBoxLinuxAdditions.run</i></li>
+        <li><i>sudo reboot</i></li>
+    </ol>
+</body>
+</html>

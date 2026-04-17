@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unirse a dominio de AD</title>
+    <link rel="stylesheet" href="../../assets/estilos.css">
+</head>
+<body>
+    <h1>Cómo unirse a un dominio en Ubuntu/Debian</h1>
+    <ol>
+        <li><i>sudo apt update</i></li>
+        <li>Instalar paquetes necesarios: <i>sudo apt install -y [samba] [krb5-user] [winbind] [libnss-winbind] [libpam-winbind]</i></li>
+        <li>Una vez finalizado, se abrirá un asistente:
+            <ul>
+                <li>Paso 1: poner el dominio (prueba.local, por ejemplo)</li>
+                <li>Paso 2: poner el nombre del servidor + el dominio (servidor.prueba.local, por ejemplo)</li>
+                <li>Paso 3: volvemos a poner el mismo que en el paso anterior</li>
+            </ul>
+        </li>
+        <li><i>sudo nano /etc/nsswitch.conf</i></li>
+        <li>En ese archivo, en las líneas de "passwd" y "group" ponemos <i>winbind</i> al final de cada una, tras el "systemd"</li>
+        <li>Configurar fichero samba. Primero, creamos una copia del archivo /etc/samba/smb.conf para evitar problemas. Una vez creada la copia, 
+            podemos borrar el original y crear uno nuevo que se llame <i>smb.conf</i>. Una vez abierto, copiamos lo siguiente:<br>
+            [global]<br>
+            &nbsp;&nbsp;workgroup = [nombre_grupo(dominio sin el .local)]<br>
+            &nbsp;&nbsp;server string = Samba Server Version %v<br>
+            &nbsp;&nbsp;security = ads<br>
+            &nbsp;&nbsp;realm = [dominio]<br>
+            &nbsp;&nbsp;socket options = TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=131072 SO_SNDBUF=131072<br>
+            &nbsp;&nbsp;use sendfile = true<br><br>
+            &nbsp;&nbsp;idmap config * : backend = tdb<br>
+            &nbsp;&nbsp;idmap config * : range = 100000-299999<br>
+            &nbsp;&nbsp;idmap config TEST : backend = rid<br>
+            &nbsp;&nbsp;idmap config TEST : range = 10000-99999<br>
+            &nbsp;&nbsp;winbind separator = +<br>
+            &nbsp;&nbsp;winbind enum users = yes<br>
+            &nbsp;&nbsp;winbind use default domain = yes<br>
+            &nbsp;&nbsp;winbind refresh tickets = yes<br><br>
+            &nbsp;&nbsp;restrict anonymous = 2<br>
+            &nbsp;&nbsp;log file = /var/log/samba/log.%m<br>
+            &nbsp;&nbsp;max log size = 50
+        </li>
+        <li>Poner como DNS el servidor principal: <i>sudo nano /etc/netplan/00-installer-config.yaml</i>. Dentro del archivo, lo dejamos así:<br>
+            network:<br>
+            &nbsp;&nbsp;ethernets:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;[nombre_adaptador_red]:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;addresses:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [IP/máscara]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gateway4: [gateway]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nameservers:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;addresses:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [IP_servidor]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;search: [[dominio]]<br>
+            &nbsp;&nbsp;version: 2
+        </li>
+        <li><i>sudo netplan apply</i></li>
+        <li>Comprobamos con un ping que los dispositivos se pueden conectar con el servidor Linux, tanto con IP como con el dominio, resolviendo por DNS.</li>
+        <li><i>sudo kinit Administrador</i>. Si no nos devuelve información, significa que está correcto.</li>
+        <li><i>sudo klist</i>. Esto nos devolverá el ticket, indicando que estamos validados por el kerberos.</li>
+        <li>Unir definitivamente el Ubuntu Server al dominio: <i>sudo net ads join -U Administrador@laboratorio.local</i></li>
+        <li>Vamos al Windows Server -> DNS -> Zona de búsqueda directa -> doble click sobre el dominio -> botón derecho -> Agregar nuevo host:
+            <ul>
+                <li>Ponemos el nombre del servidor Ubuntu</li>
+                <li>Ponemos también la IP del servidor Ubuntu</li>
+            </ul>
+        </li>
+        <li><i>sudo /etc/init.d/winbind restart</i></li>
+        <li><i>sudo wbinfo -u</i>. Con esto podremos ver los usuarios creados en el dominio. Con <i>-g</i> veremos los grupos</li>
+    </ol>
+</body>
+</html>

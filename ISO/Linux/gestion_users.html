@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de usuarios</title>
+    <link rel="stylesheet" href="../../assets/estilos.css">
+</head>
+<body>
+    <h1>Gestión de usuarios</h1>
+    <section>
+        <h2>Listar usuarios</h2>
+        <p><b>cat /etc/passwd</b> - visualizas todos los usuarios creados (a partir del 1000)</p>
+    </section>
+    <section>
+        <h2>Creación de usuarios</h2>
+        <p><b>sudo adduser [nombre] </b>- crea el usuario</p>
+        <p><b>sudo passwd [usuario] </b>- modifica la contraseña del usuario</p>
+    </section>
+    <section>
+        <h2>Administración de usuarios</h2>
+        <p><b>sudo userdel [usuario] </b>- elimina el usuario indicado</p>
+    </section>
+    <section>
+        <h2>Grupos</h2>
+        <p><b>sudo groupadd [nombre_grupo] </b>- crea el grupo con el nombre indicado</p>
+        <p><b>sudo usermod -aG [nombre_grupo] [usuario] </b>- añade al usuario al grupo indicado</p>
+        <p><b>groups [usuario] </b>- indica los grupos a los que pertenece el usuario indicado</p>
+        <p><b>gpasswd -d [usuario] [nombre_grupo] </b>- elimina al usuario del grupo indicado</p>
+    </section>
+</body>
+</html>
