@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurar servidor web con IIS</title>
+    <link rel="stylesheet" href="../../assets/estilos.css">
+</head>
+<body>
+    <h1>Cómo configurar un servidor web</h1>
+    <p>En este caso, vamos a tener un WS con AD conectado con adaptador puente al anfitrión, pero también en red interna a un w11 cliente.</p>
+    <ol>
+        <li>Agregamos rol de Servidor Web IIS. Tras la instalación, aparecerá en el panel lateral</li>
+        <li>Tras esto, entramos en IIS. Click derecho sobre el servidor -> Administrador de Internet Information Services.</li>
+        <li>Sobre Sitios, damos click derecho -> Agregar sitio web.</li>
+        <li>Indicamos la ubicación del nuevo sitio web, además de poner el nombre que queramos.</li>
+        <li>Si ya tenemos todos los archivos correctamente de la Web, iniciamos el servicio y ya podrá ser accesible, tanto con la IP del servidor como con el dominio.</li>
+        <li>En caso de que queramos modificar el dominio, debemos hacerlo a través de DNS.</li>
+        <li>Nos dirigimos al gestor de DNS y creamos una nueva zona directa.</li>
+        <li>En nombre de la zona, ponemos el dominio nuevo que queremos poner. Finalizamos.</li>
+        <li>Tras esto, doble click en el nuevo dominio -> Click derecho -> Añadir nuevo host.</li>
+        <li>En el nombre añadimos www y, en dirección IP, ponemos la dirección del servidor.</li>
+        <li>Ya tenemos acceso al servidor web operativo para equipos de la misma red.</li>
+    </ol>
+</body>
+</html>

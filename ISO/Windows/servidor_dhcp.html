@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalar y configurar servidor DHCP</title>
+    <link rel="stylesheet" href="../../assets/estilos.css">
+</head>
+<body>
+    <h1>Instalar servidor DHCP</h1>
+    <p>Un servidor DHCP se encarga de la asignación y administración automática de direccines IP y configuraciones de red relacionadas.</p>
+    <h2>Pasos para la instalación</h2>
+    <ol>
+        <li>Agregamos el rol de Servidor DHCP en las opciones. Tras la instalación, aparecerá en la parte inferior.</li>
+        <li>Nos habrá saltado un error en la parte superior. Seleccionamos para completar la instalación. Siguiente y cerramos.</li>
+        <li>Para configurarlo, vamos a Herramientras -> DHCP. Se abrirá una ventana.</li>
+        <li>Desplegamos el servidor y, sobre IPv4 damos click derecho -> Ámbito nuevo</li>
+        <li>Tenemos que poner un nombre, el que queramos. Damos a siguiente.</li>
+        <li>Tendremos que poner el rango que IPs que queremos que se asignen automáticamente</li>
+        <li>Si queremos, podemos excluir alguna IP en la siguiente opción.</li>
+        <li>También tenemos que indicar cada cuántos días queremos que se renueven las IPs</li>
+        <li>Le damos a siguiente hasta que tengamos que poner la gateway.</li>
+        <LI>Tenemos que revisar que el dominio está bien configurado y que resuelve correctamente. Vamos hasta finalizar.</LI>
+        <li>Reiniciamos el servidor, para evitar problemas.</li>
+        <li>Tras esto, ya debería de estar asignando las IPs de manera automática en los equipos que estén en el dominio.</li>
+    </ol>
+</body>
+</html>
