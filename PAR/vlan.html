@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CREACIÓN DE VLAN</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <section>
+        <h3>Pasos para la creación de una VLAN</h3>
+        <ol>
+            <li>
+                Primeramente, tenemos que establecer:
+                <ul>
+                    <li>Las diferentes VLAN</li>
+                    <li>Los dispositivos que tendremos</li>
+                    <li>El direccionamiento IP</li>
+                    <li>La topología de red</li>
+                </ul>
+            </li>
+
+            <li>Crear VLANs en el Switch:
+                <ul>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li>Creamos VLAN: <i>vlan [número]</i></li>
+                    <li>Ponemos nombre: <i>name [NOMBRE]</i></li>
+                    <li><i>exit</i></li>
+                    <li>Repetimos con todas las VLANs</li>
+                </ul>
+            </li>
+
+            <li>Configurar modo acceso:
+                <ul>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li>Entramos en la interfaz que queremos configurar: <i>interface range fastEthernet 0/X-X</i></li>
+                    <li><i>switchport mode access</i></li>
+                    <li><i>switchport access vlan [numero_VLAN]</i></li>
+                    <li>Repetimos este paso con todas las VLAN en los diferentes puertos</li>
+                </ul>
+            </li>
+
+            <li>Configurar modo trunk:
+                <ul>
+                    <li>En cada uno de los puertos del switch por el que vayan a pasar varias VLAN:</li>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li><i>interface fastEthernet 0/X</i></li>
+                    <li><i>switchport mode trunk</i></li>
+                    <li>(Opcional según dispositivo) <i>switchport trunk encapsulation dot1q</i></li>
+                </ul>
+            </li>
+
+            <li>Configurar Router (Router-on-a-Stick):
+                <ul>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li>Entramos en la interfaz que conecta con el switch: <i>interface fastEthernet 0/X</i></li>
+                    <li><i>no shutdown</i></li>
+                    <li><i>exit</i></li>
+                </ul>
+            </li>
+
+            <li>Configurar Subinterfaces del Router:
+                <ul>
+                    <li>Entramos en la subinterfaz: <i>interface fastEthernet 0/X.[número_VLAN]</i></li>
+                    <li><i>encapsulation dot1Q [número_VLAN]</i></li>
+                    <li><i>ip address [direccion_IP] [máscara]</i></li>
+                    <li>Repetimos proceso con todas las VLANs</li>
+                </ul>
+            </li>
+
+            <li>Asignar IPs a los diferentes dispositivos:
+                <ul>
+                    <li>Asignar IP dentro de su VLAN</li>
+                    <li>Asignar máscara de red</li>
+                    <li>Asignar Gateway (IP de la subinterfaz del router)</li>
+                </ul>
+            </li>
+
+            <li>Verificación de la configuración:
+                <ul>
+                    <li>En Switch: <i>show vlan brief</i></li>
+                    <li>En Switch: <i>show interfaces trunk</i></li>
+                    <li>En Router: <i>show ip interface brief</i></li>
+                    <li>Realizar <i>ping</i> entre equipos de la misma VLAN</li>
+                    <li>Realizar <i>ping</i> entre VLANs</li>
+                </ul>
+            </li>
+
+            <li>Guardar configuración:
+                <ul>
+                    <li>En Switch: <i>copy running-config startup-config</i></li>
+                    <li>En Router: <i>copy running-config startup-config</i></li>
+                </ul>
+            </li>
+
+        </ol>
+    </section>
+</body>
+</html>

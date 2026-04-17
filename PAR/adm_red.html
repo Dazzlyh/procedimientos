@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMINISTRACIÓN DE LA RED</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <header>
+        <h1>Comandos para administración de la red</h1>
+    </header>
+    <div>
+        <h3>netstat</h3>
+        <p>Muestra un listado en tiempo real de todas las conexiones activas de tu PC (tanto las que entran como las que salen)</p>
+        <p><b>netstat [-parámetros] </b>- muestra el listado utilizando los filtros indicados:
+            <ul>
+                <li><b>-a </b>muestra todas las redes (activas/inactivas) para identificar problemas</li>
+                <li><b>-e </b>estadísticas de paquetes entrantes y desviados</li>
+                <li><b>-n </b>muestra números de puerto en lugar de nombres</li>
+                <li><b>-o </b>muestra el PID de cada conexión</li>
+                <li><b>-p [protocolo] </b>filtra por el protocolo indicado (UDP, TCP...)</li>
+                <li><b>-r </b>muestra la tabla de enrutamiento</li>
+                <li><b>-s </b>estadísticas por protocolo (IPv4, IPv6, ICMP...)</li>
+                <li><b>-t </b>datos de conexiones en estado de descarga (offload)</li>
+            </ul>
+        </p>
+    </div>
+    <div>
+        <h3>hpin3 (Linux) / nping (Windows)</h3>
+        <p>Es una herramienta avanzada (evolución del ping) que permite modificar paquetes TCP/IP.</p>
+        <p>
+            <ul>
+                <li><b>Modos:</b>
+                    <ul>
+                        <li><b>-0 </b>RawIP</li>
+                        <li><b>-1 </b>ICMP</li>
+                        <li><b>-2 </b>UDP</li>
+                        <li><b>-8 </b>Escanéo de puertos</li>
+                    </ul>
+                </li>
+                <li><b>Flags TCP:</b>
+                    <ul>
+                        <li><b>-S </b>SYN</li>
+                        <li><b>-A </b>ACK</li>
+                        <li><b>-F </b>FIN</li>
+                    </ul>
+                </li>
+            </ul>
+        </p>
+        <p><b><u>Saltarse el Firewall:</b></u> lo que se hace es "Enviar 4 paquetes (-c 4) dirigidos al puerto 80 (-p 80) y únicamente la bandera SYN (-S o --flags syn)"
+            <ul>
+                <li><b>sudo hping3 -S -p 80 -c 4 [IP_Destino]</b></li>
+                <li><b>nping --tcp -p 80 --flags syn -c 4 [IP_Destino]</b></li>
+            </ul>
+        </p>
+        <p><b><u>Ataque SYN Flood (Denegación de Servicio):</b></u>
+            <ul>
+                <li><b>sudo hping3 -S -p 80 --flood --rang-source [IP_Destino] </b>-- flood dispara a la máxima velocidad posible sin esperar respuesta. --rang-source falsifica la IP de origen en cada paquete</li>
+                <li><b>nping --tcp -p 80 --flags syn --rate 5000 [IP_Destino] </b>--rate indica el número de paquetes que se van a enviar</li>
+            </ul>
+        </p>
+    </div>
+    <div>
+        <h3>nmap</h3>
+        <p>Es un software libre para el descubrimiento de redes y auditoría de seguridad: descubrir equipos (hosts), identificar puertos abiertos y servicios, detectar el SO y versión y configurar uso de Firewall.</p>
+        <p><b>nmap [IP_destino] </b> realiza el escaneo</p>
+    </div>
+</body>
+</html>
