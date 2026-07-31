@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLANs y Listas de Control de Acceso (ACL)</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <p><a href="../index.html">&larr; Volver al índice</a></p>
+
+    <h1>VLANs y Listas de Control de Acceso (ACL)</h1>
+
+    <section>
+        <h2>Conceptos previos</h2>
+        <p>Antes de configurar nada, conviene tener claros estos conceptos, ya que se preguntan mucho en exámenes y son la base de todo lo que viene después:</p>
+        <ul>
+            <li><b>VLAN (Virtual LAN)</b> - segmentación lógica de una red física en varios dominios de broadcast independientes. Los equipos de una VLAN no ven el broadcast de otra, aunque estén conectados al mismo switch físico.</li>
+            <li><b>Puerto access</b> - pertenece a una única VLAN. Se usa para conectar dispositivos finales (PCs, impresoras, servidores, APs). El tráfico que sale/entra por él no lleva ninguna etiqueta.</li>
+            <li><b>Puerto trunk</b> - transporta el tráfico de varias VLANs a la vez por un mismo cable, añadiendo una etiqueta 802.1Q a cada trama para identificar de qué VLAN es. Se usa entre switches, o entre un switch y un router/firewall.</li>
+            <li><b>VLAN nativa</b> - en un enlace trunk, es la única VLAN cuyo tráfico viaja <i>sin</i> etiquetar. Por defecto es la VLAN 1. Por seguridad, se recomienda cambiarla a una VLAN que no se use para nada (ni siquiera de gestión), para evitar ataques de VLAN hopping.</li>
+            <li><b>DTP (Dynamic Trunking Protocol)</b> - protocolo de Cisco que negocia automáticamente si un puerto debe ser access o trunk. En entornos de producción se recomienda desactivarlo con <i>switchport nonegotiate</i>, fijando el modo manualmente por seguridad.</li>
+            <li><b>Router-on-a-stick</b> - diseño en el que un único router, a través de subinterfaces (una por VLAN), hace de puerta de enlace de todas las VLANs. Válido para redes pequeñas; en redes grandes se sustituye por un switch de capa 3 con SVIs, para no depender de un único enlace físico como cuello de botella.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Pasos para la creación de una VLAN</h2>
+        <ol>
+            <li>
+                Primeramente, tenemos que establecer:
+                <ul>
+                    <li>Las diferentes VLAN</li>
+                    <li>Los dispositivos que tendremos</li>
+                    <li>El direccionamiento IP</li>
+                    <li>La topología de red</li>
+                </ul>
+            </li>
+
+            <li>Crear VLANs en el Switch:
+                <ul>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li>Creamos VLAN: <i>vlan [número]</i></li>
+                    <li>Ponemos nombre: <i>name [NOMBRE]</i></li>
+                    <li><i>exit</i></li>
+                    <li>Repetimos con todas las VLANs</li>
+                </ul>
+            </li>
+
+            <li>Configurar modo acceso:
+                <ul>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li>Entramos en la interfaz que queremos configurar: <i>interface range fastEthernet 0/X-X</i></li>
+                    <li><i>switchport mode access</i></li>
+                    <li><i>switchport access vlan [numero_VLAN]</i></li>
+                    <li>Repetimos este paso con todas las VLAN en los diferentes puertos</li>
+                </ul>
+            </li>
+
+            <li>Configurar modo trunk:
+                <ul>
+                    <li>En cada uno de los puertos del switch por el que vayan a pasar varias VLAN:</li>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li><i>interface fastEthernet 0/X</i></li>
+                    <li><i>switchport mode trunk</i></li>
+                    <li>(Opcional según dispositivo) <i>switchport trunk encapsulation dot1q</i></li>
+                    <li>(Buena práctica) Limitar las VLANs permitidas: <i>switchport trunk allowed vlan [lista_de_VLANs]</i></li>
+                    <li>(Buena práctica de seguridad) Desactivar la negociación automática: <i>switchport nonegotiate</i></li>
+                </ul>
+            </li>
+
+            <li>Configurar Router (Router-on-a-Stick):
+                <ul>
+                    <li><i>enable</i></li>
+                    <li><i>configure terminal</i></li>
+                    <li>Entramos en la interfaz que conecta con el switch: <i>interface fastEthernet 0/X</i></li>
+                    <li><i>no shutdown</i></li>
+                    <li><i>exit</i></li>
+                </ul>
+            </li>
+
+            <li>Configurar Subinterfaces del Router:
+                <ul>
+                    <li>Entramos en la subinterfaz: <i>interface fastEthernet 0/X.[número_VLAN]</i></li>
+                    <li><i>encapsulation dot1Q [número_VLAN]</i></li>
+                    <li><i>ip address [direccion_IP] [máscara]</i></li>
+                    <li>Repetimos proceso con todas las VLANs</li>
+                    <li><b>Ojo:</b> es el fallo más habitual - si te olvidas del <i>ip address</i> en alguna subinterfaz, esa VLAN se queda sin gateway y ningún equipo de esa red podrá salir de ella (ni recibir IP por DHCP relay, ver aviso más abajo)</li>
+                </ul>
+            </li>
+
+            <li>Asignar IPs a los diferentes dispositivos:
+                <ul>
+                    <li>Asignar IP dentro de su VLAN</li>
+                    <li>Asignar máscara de red</li>
+                    <li>Asignar Gateway (IP de la subinterfaz del router)</li>
+                </ul>
+            </li>
+
+            <li>Verificación de la configuración:
+                <ul>
+                    <li>En Switch: <i>show vlan brief</i></li>
+                    <li>En Switch: <i>show interfaces trunk</i></li>
+                    <li>En Router: <i>show ip interface brief</i></li>
+                    <li>Realizar <i>ping</i> entre equipos de la misma VLAN</li>
+                    <li>Realizar <i>ping</i> entre VLANs</li>
+                </ul>
+            </li>
+
+            <li>Guardar configuración:
+                <ul>
+                    <li>En Switch: <i>copy running-config startup-config</i></li>
+                    <li>En Router: <i>copy running-config startup-config</i></li>
+                </ul>
+            </li>
+        </ol>
+
+        <p><b>Aviso - DHCP en un entorno con VLANs:</b> si el servidor DHCP está centralizado en una sola VLAN (por ejemplo, la de Servidores) y las demás VLANs necesitan recibir IP por DHCP, el broadcast <i>DHCPDISCOVER</i> no atraviesa el router por sí solo. Hay que añadir en <b>cada subinterfaz</b> de las VLANs de clientes el comando <i>ip helper-address [IP_del_servidor_DHCP]</i>, para que el router reenvíe esas peticiones como unicast hacia el servidor.</p>
+    </section>
+
+    <section>
+        <h2>Enrutamiento inter-VLAN con switch multicapa (Multilayer Switch)</h2>
+
+        <h3>¿Qué cambia respecto a router-on-a-stick?</h3>
+        <p>En router-on-a-stick, el switch solo trabaja en capa 2 y todo el tráfico entre VLANs tiene que salir por un único enlace físico hacia el router, que es quien hace el routing. En un <b>switch multicapa</b> (o switch de capa 3, "L3 switch"), el propio switch puede enrutar entre VLANs internamente, sin necesitar ningún router ni ningún enlace externo. En Packet Tracer, los modelos <i>3560</i> y <i>3650</i> son switches multicapa.</p>
+        <p>La pieza clave es la <b>SVI (Switch Virtual Interface)</b>: una interfaz virtual asociada a una VLAN, que actúa como puerta de enlace de esa VLAN, de forma equivalente a como lo hacía cada subinterfaz del router en router-on-a-stick.</p>
+
+        <h3>Pasos para configurar el enrutamiento inter-VLAN</h3>
+        <ol>
+            <li>Crear las VLANs igual que siempre:
+                <ul>
+                    <li><i>vlan [número]</i></li>
+                    <li><i>name [NOMBRE]</i></li>
+                </ul>
+            </li>
+            <li>Activar el enrutamiento en el switch (viene desactivado por defecto):
+                <ul>
+                    <li><i>configure terminal</i></li>
+                    <li><i>ip routing</i></li>
+                </ul>
+            </li>
+            <li>Crear una SVI por cada VLAN, con su IP de gateway:
+                <ul>
+                    <li><i>interface vlan [número_VLAN]</i></li>
+                    <li><i>ip address [dirección_IP] [máscara]</i></li>
+                    <li><i>no shutdown</i></li>
+                    <li>Repetir con todas las VLANs</li>
+                </ul>
+            </li>
+            <li>Configurar los puertos de acceso hacia los dispositivos finales igual que en un switch normal:
+                <ul>
+                    <li><i>interface range fastEthernet 0/X-X</i></li>
+                    <li><i>switchport mode access</i></li>
+                    <li><i>switchport access vlan [numero_VLAN]</i></li>
+                </ul>
+            </li>
+            <li>Si el switch multicapa se conecta a otro switch de acceso (para repartir las VLANs entre varios switches físicos), ese enlace sigue siendo un <b>trunk</b> normal:
+                <ul>
+                    <li><i>interface fastEthernet 0/X</i></li>
+                    <li><i>switchport mode trunk</i></li>
+                    <li><i>switchport trunk allowed vlan [lista_de_VLANs]</i></li>
+                </ul>
+            </li>
+            <li>Si alguno de los puertos del switch multicapa va a conectarse directamente a un router o a otro dispositivo de capa 3 sin hacer trunking (por ejemplo, para salir a Internet), ese puerto puede convertirse en un <b>puerto enrutado</b> (routed port), dejando de comportarse como puerto de switch:
+                <ul>
+                    <li><i>interface gigabitEthernet 0/X</i></li>
+                    <li><i>no switchport</i></li>
+                    <li><i>ip address [dirección_IP] [máscara]</i></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Ejemplo rápido</h3>
+        <p>Para las VLANs 10 (Servidores) y 99 (Invitados):</p>
+        <ul>
+            <li><i>ip routing</i></li>
+            <li><i>interface vlan 10</i></li>
+            <li><i>&nbsp;&nbsp;ip address 192.168.10.1 255.255.255.0</i></li>
+            <li><i>&nbsp;&nbsp;no shutdown</i></li>
+            <li><i>interface vlan 99</i></li>
+            <li><i>&nbsp;&nbsp;ip address 192.168.99.1 255.255.255.0</i></li>
+            <li><i>&nbsp;&nbsp;no shutdown</i></li>
+        </ul>
+
+        <h3>Verificación</h3>
+        <ul>
+            <li><i>show vlan brief</i> - VLANs y puertos asignados</li>
+            <li><i>show ip interface brief</i> - estado de cada SVI (deben salir up/up)</li>
+            <li><i>show ip route</i> - las SVIs activas aparecen como redes conectadas directamente, sin necesidad de ningún protocolo de enrutamiento</li>
+        </ul>
+
+        <h3>Errores comunes</h3>
+        <ul>
+            <li>Olvidar el comando <i>ip routing</i> - sin él, el switch multicapa se comporta como un switch normal de capa 2 y las VLANs no se comunican entre sí aunque las SVIs tengan IP</li>
+            <li>Olvidar el <i>no shutdown</i> en la SVI - las SVIs, igual que cualquier interfaz, nacen administrativamente apagadas</li>
+            <li>Confundir <i>interface vlan [número]</i> (la SVI, virtual) con <i>interface fastEthernet 0/X</i> (un puerto físico) - son conceptos distintos aunque ambos puedan llevar <i>ip address</i></li>
+            <li>La SVI de una VLAN no se activa si esa VLAN no tiene ningún puerto físico activo (up) asignado a ella; en algunas versiones de IOS puede quedar en estado down/down hasta que haya al menos un puerto en esa VLAN funcionando</li>
+        </ul>
+
+        <p><b>Nota:</b> este es exactamente el diseño que se usa en la inmensa mayoría de redes empresariales reales. Se explica con más detalle, y se compara con router-on-a-stick, en la conversación donde se generó este apartado del manual.</p>
+    </section>
+
+    <section>
+        <h2>Listas de Control de Acceso (ACL)</h2>
+
+        <h3>¿Qué es una ACL?</h3>
+        <p>Una ACL es un conjunto de reglas (sentencias <i>permit</i> / <i>deny</i>) que se evalúan de arriba a abajo, en orden, sobre el tráfico que entra o sale de una interfaz. En cuanto una sentencia coincide con el tráfico, se aplica esa acción y se deja de evaluar el resto de la lista. Al final de <b>toda</b> ACL existe un <i>deny ip any any</i> <b>implícito</b> que no aparece escrito, pero que siempre está ahí.</p>
+
+        <h3>Tipos de ACL</h3>
+        <ul>
+            <li><b>Estándar</b> (rango 1-99 y 1300-1999) - solo puede filtrar por <b>IP de origen</b>. Al ser tan poco específica, se recomienda colocarla <b>lo más cerca posible del destino</b>, para no bloquear por error tráfico legítimo hacia otros destinos distintos.</li>
+            <li><b>Extendida</b> (rango 100-199 y 2000-2699) - puede filtrar por IP origen, IP destino, protocolo (tcp, udp, icmp...) y puerto. Al ser más precisa, se recomienda colocarla <b>lo más cerca posible del origen</b>, para descartar el tráfico no deseado cuanto antes y no malgastar ancho de banda de la red.</li>
+            <li><b>Nombrada (named ACL)</b> - en vez de un número, se le da un nombre descriptivo. Su gran ventaja es que permite insertar, eliminar o modificar líneas concretas sin tener que borrar y recrear toda la lista (las numeradas clásicas no lo permiten con facilidad).</li>
+        </ul>
+
+        <h3>La máscara wildcard</h3>
+        <p>Las ACL no usan la máscara de subred normal, sino su <b>inversa</b>, llamada máscara wildcard. Un <i>0</i> significa "este bit debe coincidir exactamente"; un <i>1</i> significa "este bit no importa, puede ser cualquier valor".</p>
+        <ul>
+            <li>Máscara de subred <i>255.255.255.0</i> &rarr; wildcard equivalente <i>0.0.0.255</i></li>
+            <li>Máscara de subred <i>255.255.0.0</i> &rarr; wildcard equivalente <i>0.0.255.255</i></li>
+            <li>Para referirse a <b>un único host</b>: wildcard <i>0.0.0.0</i>, o directamente la palabra clave <i>host [IP]</i></li>
+            <li>Para referirse a <b>cualquier IP</b>: wildcard <i>255.255.255.255</i>, o directamente la palabra clave <i>any</i></li>
+        </ul>
+        <p><b>Truco rápido:</b> la wildcard se calcula restando la máscara de subred a 255.255.255.255. Por ejemplo, para /24 (255.255.255.0): 255.255.255.255 - 255.255.255.0 = 0.0.0.255.</p>
+
+        <h3>Reglas de oro</h3>
+        <ol>
+            <li>El <b>orden importa</b>: se evalúa de arriba a abajo, y gana la primera coincidencia.</li>
+            <li>Existe un <b>deny implícito</b> al final de toda ACL. Si no añades tu propio <i>permit</i> final, se bloqueará absolutamente todo el tráfico de esa interfaz (incluyendo DHCP, ARP resuelto por el router, etc.).</li>
+            <li>Solo se puede aplicar <b>una ACL por protocolo, por dirección (in/out) y por interfaz</b>. Es decir, una interfaz puede tener una ACL de entrada y otra distinta de salida, pero no dos de entrada a la vez.</li>
+            <li>Las <b>extendidas</b> se colocan cerca del <b>origen</b>; las <b>estándar</b> cerca del <b>destino</b>.</li>
+        </ol>
+
+        <h3>Sintaxis básica</h3>
+        <ul>
+            <li>ACL estándar: <i>access-list [1-99] [permit|deny] [origen] [wildcard_origen]</i></li>
+            <li>ACL extendida: <i>access-list [100-199] [permit|deny] [protocolo] [origen] [wildcard_origen] [destino] [wildcard_destino] [operador puerto]</i></li>
+            <li>ACL nombrada: <i>ip access-list extended [NOMBRE]</i>, y dentro se escriben las líneas <i>permit</i>/<i>deny</i> sin repetir <i>access-list</i> delante</li>
+        </ul>
+
+        <h3>Aplicar la ACL a una interfaz</h3>
+        <ul>
+            <li><i>interface [interfaz]</i></li>
+            <li><i>ip access-group [número o nombre] [in|out]</i></li>
+        </ul>
+        <p><b>in</b> filtra el tráfico que entra al router por esa interfaz (viniendo desde esa red); <b>out</b> filtra el tráfico que sale del router hacia esa interfaz.</p>
+
+        <h3>Ejemplo práctico: bloquear una VLAN de invitados hacia la VLAN de servidores</h3>
+        <p>Supongamos la VLAN 99 (Invitados, red 192.168.99.0/24) y la VLAN 10 (Servidores, red 192.168.10.0/24). Queremos que Invitados no pueda llegar a Servidores, pero sí pueda salir a cualquier otro sitio (por ejemplo, Internet):</p>
+        <ul>
+            <li><i>access-list 100 deny ip 192.168.99.0 0.0.0.255 192.168.10.0 0.0.0.255</i></li>
+            <li><i>access-list 100 permit ip any any</i></li>
+            <li><i>interface gi0/0.99</i></li>
+            <li><i>ip access-group 100 in</i></li>
+        </ul>
+
+        <h3>La misma ACL, en versión nombrada</h3>
+        <ul>
+            <li><i>ip access-list extended BLOQUEO_INVITADOS</i></li>
+            <li><i>&nbsp;&nbsp;deny ip 192.168.99.0 0.0.0.255 192.168.10.0 0.0.0.255</i></li>
+            <li><i>&nbsp;&nbsp;permit ip any any</i></li>
+            <li><i>interface gi0/0.99</i></li>
+            <li><i>ip access-group BLOQUEO_INVITADOS in</i></li>
+        </ul>
+
+        <h3>Filtrado por protocolo y puerto (ejemplo real)</h3>
+        <p>Por ejemplo, para bloquear el acceso por Telnet (puerto 23) a un servidor concreto, pero permitir el resto de tráfico:</p>
+        <ul>
+            <li><i>access-list 110 deny tcp any host 192.168.10.5 eq 23</i></li>
+            <li><i>access-list 110 permit ip any any</i></li>
+        </ul>
+
+        <h3>Verificación</h3>
+        <ul>
+            <li><i>show access-lists</i> - muestra todas las ACL configuradas y, en Packet Tracer/IOS reciente, cuántas veces ha coincidido cada línea (contador de matches)</li>
+            <li><i>show ip interface [interfaz]</i> - muestra si esa interfaz tiene una ACL aplicada y en qué sentido (in/out)</li>
+            <li><i>show running-config</i> - para revisar la configuración completa aplicada</li>
+        </ul>
+
+        <h3>Errores comunes con ACL</h3>
+        <ul>
+            <li>Olvidar el <i>permit ip any any</i> final, bloqueando sin querer toda la VLAN (el error más grave y más habitual)</li>
+            <li>Colocar una ACL extendida cerca del destino en vez de cerca del origen (funciona, pero es ineficiente y no es buena práctica)</li>
+            <li>Confundir la máscara wildcard con la máscara de subred normal (son inversas una de la otra)</li>
+            <li>Aplicar la ACL en la dirección incorrecta (<i>in</i> en vez de <i>out</i>, o viceversa)</li>
+            <li>Añadir una línea nueva a una ACL numerada ya creada: por defecto se añade al <b>final</b> de la lista, lo que puede no ser donde realmente la necesitas. Para insertar en medio, hace falta usar números de secuencia (con ACL nombradas) o recrear la lista entera</li>
+        </ul>
+
+        <p><b>Contexto real:</b> las ACL de un router son <i>stateless</i> (no recuerdan el estado de las conexiones) y constituyen una primera capa de defensa muy básica. En entornos profesionales serios, esta función se complementa o sustituye por un <b>firewall dedicado</b> (Fortinet, pfSense, Cisco ASA/Firepower...), que sí es <i>stateful</i> y ofrece muchas más posibilidades de inspección del tráfico.</p>
+    </section>
+
+    <p><a href="../index.html">&larr; Volver al índice</a></p>
+</body>
+</html>

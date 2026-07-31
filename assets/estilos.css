@@ -1,0 +1,45 @@
+body{
+    font-family: 'Courier New', Courier, monospace;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 15px 40px 15px;
+    line-height: 1.5;
+}
+h1 {
+    background-color:gray;
+    padding: 5px;
+}
+
+h2{
+    background-color: lightgray;
+    padding: 5px;
+}
+
+h3{
+    background-color:beige;
+    padding: 5px;
+}
+
+p{
+    padding-left: 10px;
+}
+
+/* Barra de navegación de vuelta al índice */
+nav{
+    padding: 8px 5px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid lightgray;
+}
+nav a{
+    text-decoration: none;
+}
+
+/* Etiqueta literal de comandos (lo que ya marcas con <i>) */
+i{
+    color: #444;
+}
+
+/* Hace los listados de comandos un poco más respirables */
+li{
+    margin-bottom: 3px;
+}

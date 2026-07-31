@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <nav><a href="../index.html">&larr; Volver al índice</a></nav>
+
+    <header>
+        <h1>Docker</h1>
+    </header>
+
+    <section>
+        <h2>Teoría</h2>
+        <p>Docker es una plataforma para crear, distribuir y ejecutar aplicaciones dentro de <b>contenedores</b>:
+            entornos aislados y ligeros que empaquetan una aplicación con todo lo que necesita para funcionar
+            (librerías, dependencias, configuración). A diferencia de una máquina virtual, el contenedor comparte
+            el kernel del sistema anfitrión, por lo que arranca rápido y consume pocos recursos.</p>
+        <p>Conceptos clave:</p>
+        <ul>
+            <li><b>Imagen</b> - plantilla de solo lectura con la que se crean los contenedores</li>
+            <li><b>Contenedor</b> - instancia en ejecución de una imagen</li>
+            <li><b>Dockerfile</b> - fichero de texto con las instrucciones para construir una imagen</li>
+            <li><b>Volumen</b> - mecanismo para guardar datos de forma persistente fuera del contenedor</li>
+            <li><b>Registro (registry)</b> - repositorio de imágenes (p. ej. Docker Hub)</li>
+        </ul>
+
+        <h3>Tags de las imágenes</h3>
+        <p>Una imagen se identifica como <i>nombre:tag</i> (por ejemplo <i>ubuntu:22.04</i>). El <b>tag</b> indica la versión
+            o variante de la imagen. Si no se indica ninguno, Docker asume <i>:latest</i> por defecto.</p>
+
+        <h3>Aislamiento entre tags de una misma imagen</h3>
+        <p>Cada contenedor es independiente, incluso si parten de la misma imagen con distinto tag. Se pueden tener varios
+            contenedores corriendo a la vez (por ejemplo <i>nginx:1.24</i> y <i>nginx:1.25</i>) sin que se interfieran entre sí:
+            cada uno tiene su propio sistema de ficheros, procesos y red. Para distinguirlos cómodamente conviene darles un nombre
+            con <i>--name</i>.</p>
+
+        <h3>Volúmenes: para qué sirven</h3>
+        <p>El sistema de ficheros de un contenedor es <b>efímero</b>: cuando eliminas el contenedor, todo lo que había dentro
+            desaparece. Los <b>volúmenes</b> resuelven ese problema permitiendo que los datos vivan fuera del contenedor,
+            en el anfitrión. Sus usos principales son:
+            <ul>
+                <li><b>Persistencia </b>- guardar datos que deben sobrevivir al ciclo de vida del contenedor (bases de datos, subidas de usuarios, logs)</li>
+                <li><b>Compartir datos </b>- que varios contenedores accedan a la misma información</li>
+                <li><b>Desarrollo en caliente </b>- montar la carpeta de código del anfitrión dentro del contenedor para que los cambios se reflejen sin reconstruir la imagen</li>
+                <li><b>Copias de seguridad y migración </b>- resulta más fácil respaldar un volumen que un contenedor entero</li>
+            </ul>
+        </p>
+
+        <h3>Bind mount vs volumen gestionado</h3>
+        <p>Docker ofrece dos formas principales de montar datos, ambas se declaran con <i>-v</i>:
+            <ul>
+                <li><b>Bind mount </b>- se enlaza una <b>ruta concreta del anfitrión</b> con una ruta del contenedor
+                    (<i>-v /ruta/anfitrion:/ruta/contenedor</i>). Los cambios en cualquiera de los dos lados se ven al instante.
+                    Es lo típico para desarrollo, cuando quieres editar el código en tu editor y que el contenedor lo vea.</li>
+                <li><b>Volumen gestionado </b>- se le da un <b>nombre</b> y Docker gestiona dónde se guarda
+                    (<i>-v nombre_volumen:/ruta/contenedor</i>). Es la opción recomendada para datos de aplicaciones y bases de datos,
+                    porque es más portable y Docker se encarga de su ubicación.</li>
+            </ul>
+        </p>
+
+        <h3>Modificación del código sin reconstruir</h3>
+        <p>Durante el desarrollo, reconstruir la imagen con <i>docker build</i> cada vez que se cambia una línea sería lento.
+            La solución habitual es montar la carpeta del código como <b>bind mount</b>: el contenedor lee los archivos
+            directamente del anfitrión, por lo que al editar el código en local, el contenedor ve el cambio inmediatamente
+            (a veces hará falta reiniciar el proceso interno, según la tecnología).</p>
+    </section>
+
+    <section>
+        <h2>Comandos básicos</h2>
+
+        <h3>docker run</h3>
+        <p><b>docker run [opciones] [imagen] [argumentos]</b> - crea y arranca un contenedor a partir de una imagen. Si la imagen no está en local, la descarga primero.</p>
+        <p>Opciones más habituales:
+            <ul>
+                <li><b>-d </b>(detached) ejecuta el contenedor en segundo plano, sin bloquear la terminal</li>
+                <li><b>-i </b>(interactive) mantiene la entrada estándar (STDIN) abierta</li>
+                <li><b>-t </b>(tty) asigna un pseudo-terminal. Se suele combinar como <i>-it</i> para entrar en una shell</li>
+                <li><b>-a </b>(attach) adjunta STDIN, STDOUT o STDERR al contenedor (p. ej. <i>-a stdout</i>)</li>
+                <li><b>--name [nombre] </b>asigna un nombre personalizado al contenedor (si no, Docker pone uno aleatorio)</li>
+                <li><b>-h [hostname] </b>establece el hostname interno del contenedor</li>
+                <li><b>-u [usuario] </b>ejecuta el proceso como el usuario indicado en lugar de root</li>
+                <li><b>-e [VARIABLE=valor] </b>define una variable de entorno dentro del contenedor</li>
+                <li><b>--rm </b>elimina el contenedor automáticamente al pararlo</li>
+                <li><b>--restart [política] </b>define cuándo reiniciar el contenedor: <i>no</i> (por defecto), <i>on-failure</i>, <i>always</i>, <i>unless-stopped</i></li>
+                <li><b>--entrypoint [comando] </b>sobreescribe el ENTRYPOINT definido en la imagen</li>
+                <li><b>-v </b>monta un volumen o un bind mount (ver sección de volúmenes)</li>
+                <li><b>--volumes-from [contenedor] </b>reutiliza los volúmenes ya montados por otro contenedor</li>
+                <li><b>-p [host]:[contenedor] </b>publica un puerto concreto (ver subsección de puertos)</li>
+                <li><b>-P </b>publica todos los puertos declarados con EXPOSE, en puertos aleatorios del anfitrión</li>
+                <li><b>--expose [puerto] </b>expone un puerto adicional sin publicarlo (documentativo, útil con --link)</li>
+                <li><b>--link [contenedor]:[alias] </b>enlaza con otro contenedor (ver sección avanzada, en desuso)</li>
+            </ul>
+        </p>
+
+        <h4>Publicación de puertos</h4>
+        <p>Para que un servicio del contenedor sea accesible desde el anfitrión hay que <b>publicar</b> puertos:
+            <ul>
+                <li><b>-p [host]:[contenedor] </b>mapea un puerto concreto. Ejemplo: <i>-p 8080:80</i> hace que el 80 del contenedor sea accesible desde el 8080 del anfitrión</li>
+                <li><b>-p [contenedor] </b>si solo se indica un puerto, se publica en un puerto aleatorio del anfitrión</li>
+                <li><b>-P </b>publica <u>todos</u> los puertos declarados con EXPOSE en la imagen, cada uno en un puerto aleatorio del anfitrión</li>
+                <li><b>--expose [puerto] </b>NO publica el puerto, solo lo declara. Sirve para que otros contenedores lo vean (típico con --link)</li>
+            </ul>
+        </p>
+
+        <h3>docker port</h3>
+        <p><b>docker port [contenedor] </b>- muestra a qué puertos del anfitrión están mapeados los puertos del contenedor. Útil sobre todo cuando se han asignado aleatoriamente con <i>-P</i>.</p>
+        <p><b>docker port [contenedor] [puerto] </b>- muestra el mapeo de un puerto concreto</p>
+
+        <h3>docker pull</h3>
+        <p><b>docker pull [imagen]:[tag] </b>- descarga una imagen desde un registro (Docker Hub por defecto) sin crear el contenedor</p>
+
+        <h3>docker tag</h3>
+        <p><b>docker tag [imagen_origen] [imagen_destino]:[tag] </b>- crea un alias (una nueva etiqueta) para una imagen existente. No duplica la imagen, solo le añade otro nombre. Se usa sobre todo antes de un <i>push</i>, para renombrar la imagen con tu usuario del registro.
+            <ul>
+                <li>Ejemplo: <i>docker tag miapp:latest usuario/miapp:1.0</i></li>
+            </ul>
+        </p>
+
+        <h3>docker push</h3>
+        <p><b>docker push [usuario/imagen]:[tag] </b>- sube una imagen a un registro. Requiere haber iniciado sesión (<i>docker login</i>) y que la imagen esté etiquetada con tu usuario (normalmente con <i>docker tag</i> previo)</p>
+
+        <h3>docker images</h3>
+        <p><b>docker images </b>- lista todas las imágenes descargadas en local (nombre, tag, ID, tamaño)</p>
+
+        <h3>docker ps</h3>
+        <p><b>docker ps </b>- lista los contenedores en ejecución
+            <ul>
+                <li><b>-a </b>muestra todos los contenedores, también los parados</li>
+                <li><b>-q </b>muestra solo los IDs (útil para combinar con otros comandos)</li>
+                <li><b>-s </b>muestra el tamaño de cada contenedor</li>
+                <li><b>-l </b>muestra el último contenedor creado</li>
+                <li><b>-n [número] </b>muestra los últimos N contenedores</li>
+                <li><b>-f [filtro] </b>filtra por condición (p. ej. <i>-f status=exited</i>)</li>
+            </ul>
+        </p>
+
+        <h3>docker stop / start / restart</h3>
+        <p><b>docker stop [contenedor] </b>- detiene un contenedor en ejecución (lo apaga de forma ordenada)</p>
+        <p><b>docker start [contenedor] </b>- vuelve a arrancar un contenedor que estaba parado</p>
+        <p><b>docker restart [contenedor] </b>- reinicia un contenedor (equivale a stop + start)</p>
+
+        <h3>docker rm</h3>
+        <p><b>docker rm [contenedor] </b>- elimina un contenedor parado. Si está en ejecución (UP), dará error salvo que se fuerce</p>
+        <p><b>docker rm -f [contenedor] </b>- fuerza la eliminación aunque el contenedor esté en ejecución</p>
+
+        <h3>docker rmi</h3>
+        <p><b>docker rmi [imagen] </b>- elimina una imagen de local (no un contenedor). No se puede borrar si hay contenedores que la usan</p>
+    </section>
+
+    <section>
+        <h2>Comandos intermedios</h2>
+
+        <h3>docker exec</h3>
+        <p><b>docker exec [opciones] [contenedor] [comando] </b>- ejecuta un comando dentro de un contenedor que ya está corriendo
+            <ul>
+                <li><b>-i </b>(interactive) mantiene la entrada estándar abierta</li>
+                <li><b>-t </b>(tty) asigna una terminal</li>
+                <li><b>-it [contenedor] sh </b>combinación habitual para abrir una shell interactiva dentro del contenedor (también <i>bash</i> si la imagen lo incluye)</li>
+            </ul>
+        </p>
+
+        <h3>docker logs</h3>
+        <p><b>docker logs [opciones] [contenedor] </b>- muestra la salida (logs) generada por un contenedor
+            <ul>
+                <li><b>-f </b>(follow) muestra los logs en tiempo real según se generan</li>
+                <li><b>-t </b>añade marca de tiempo (timestamp) a cada línea</li>
+                <li><b>--tail [número] </b>muestra solo las últimas N líneas</li>
+                <li><b>--since [tiempo] </b>muestra los logs a partir de un momento dado (p. ej. <i>10m</i>, una fecha)</li>
+                <li><b>--until [tiempo] </b>muestra los logs hasta un momento dado</li>
+                <li><b>--details </b>muestra detalles adicionales de cada entrada</li>
+            </ul>
+        </p>
+
+        <h3>docker inspect</h3>
+        <p><b>docker inspect [contenedor|imagen] </b>- devuelve un JSON con toda la información del contenedor o imagen: configuración, red, volúmenes montados, variables de entorno, etc.
+            <ul>
+                <li><b>-f "[plantilla]" </b>filtra la salida usando una plantilla Go, para extraer solo lo que interesa</li>
+                <li><b>docker inspect -f '{{.Mounts}}' [contenedor] </b>- muestra únicamente los volúmenes y bind mounts del contenedor</li>
+                <li><b>docker inspect -f '{{.NetworkSettings.IPAddress}}' [contenedor] </b>- extrae solo la IP interna del contenedor</li>
+                <li><b>docker inspect -f '{{.State.Status}}' [contenedor] </b>- muestra solo el estado (running, exited...)</li>
+            </ul>
+        </p>
+
+        <h3>docker rename</h3>
+        <p><b>docker rename [nombre_actual] [nombre_nuevo] </b>- cambia el nombre de un contenedor existente</p>
+
+        <h3>docker search</h3>
+        <p><b>docker search [término] </b>- busca imágenes en Docker Hub desde la terminal
+            <ul>
+                <li><b>--limit [número] </b>limita el número de resultados mostrados</li>
+                <li><b>-f stars=[número] </b>filtra por número mínimo de estrellas</li>
+                <li><b>-f is-official=true </b>muestra solo imágenes oficiales</li>
+            </ul>
+        </p>
+
+        <h3>docker stats</h3>
+        <p><b>docker stats </b>- muestra en tiempo real el consumo de recursos (CPU, memoria, red, disco) de los contenedores activos</p>
+
+        <h3>docker info</h3>
+        <p><b>docker info </b>- muestra información general del sistema Docker: número de contenedores e imágenes, versión, driver de almacenamiento, recursos, etc.</p>
+
+        <h3>docker save / load</h3>
+        <p><b>docker save -o [archivo.tar] [imagen] </b>- exporta una imagen a un archivo .tar para guardarla o transportarla sin un registro</p>
+        <p><b>docker load -i [archivo.tar] </b>- importa una imagen desde un archivo .tar generado con save</p>
+
+        <h3>Eliminar varios contenedores con filtros</h3>
+        <p><b>docker rm $(docker ps -aq -f [filtro]) </b>- elimina de golpe varios contenedores filtrándolos primero, sin tener que escribir cada uno. El comando interno (entre <i>$()</i>) devuelve los IDs y <i>docker rm</i> los borra.
+            <ul>
+                <li><b>docker rm $(docker ps -aq) </b>- elimina todos los contenedores parados</li>
+                <li><b>docker rm -f $(docker ps -aq) </b>- elimina todos los contenedores, también los que estén en ejecución</li>
+                <li><b>docker rm $(docker ps -aq -f status=exited) </b>- elimina solo los que han terminado (exited)</li>
+            </ul>
+            Filtros habituales con <i>-f</i>: <i>status=exited</i>, <i>status=running</i>, <i>name=[texto]</i>, <i>ancestor=[imagen]</i>.
+        </p>
+    </section>
+
+    <section>
+        <h2>Comandos avanzados</h2>
+
+        <h3>Estructura típica de un proyecto con Docker</h3>
+        <p>Para construir una imagen propia, lo normal es tener una carpeta de proyecto con esta estructura mínima:</p>
+        <p>
+            miapp/<br>
+            &nbsp;&nbsp;Dockerfile<br>
+            &nbsp;&nbsp;.dockerignore<br>
+            &nbsp;&nbsp;package.json&nbsp;&nbsp;&nbsp;(en Node.js; requirements.txt en Python, etc.)<br>
+            &nbsp;&nbsp;index.js&nbsp;&nbsp;&nbsp;(código principal)<br>
+            &nbsp;&nbsp;src/<br>
+            &nbsp;&nbsp;public/
+        </p>
+        <ul>
+            <li><b>Dockerfile </b>- instrucciones para construir la imagen</li>
+            <li><b>.dockerignore </b>- archivos y carpetas que no queremos que Docker envíe al construir la imagen (p. ej. <i>node_modules</i>, <i>.git</i>). Es equivalente al <i>.gitignore</i></li>
+            <li><b>Código de la app </b>- <i>index.js</i>, dependencias declaradas (<i>package.json</i>) y cualquier carpeta de código o recursos</li>
+        </ul>
+        <p>Desde esa carpeta se ejecuta <i>docker build</i>, y ese directorio se convierte en el <b>contexto de construcción</b> que Docker envía al motor.</p>
+
+        <h3>Dockerfile y su estructura</h3>
+        <p>Un <b>Dockerfile</b> es un fichero de texto (sin extensión, llamado literalmente <i>Dockerfile</i>) con las instrucciones para construir una imagen propia, paso a paso. Instrucciones principales:
+            <ul>
+                <li><b>FROM [imagen]:[tag] </b>imagen base de la que partimos. Siempre es la primera instrucción</li>
+                <li><b>MAINTAINER [autor] </b>indica el autor/mantenedor de la imagen. Está en desuso, hoy se usa <i>LABEL maintainer="..."</i></li>
+                <li><b>WORKDIR [ruta] </b>establece el directorio de trabajo dentro de la imagen para las instrucciones siguientes</li>
+                <li><b>COPY [origen] [destino] </b>copia archivos del contexto de construcción a la imagen</li>
+                <li><b>ADD [origen] [destino] </b>como COPY pero además admite URLs y descomprime archivos .tar automáticamente</li>
+                <li><b>RUN [comando] </b>ejecuta un comando durante la construcción (instalar paquetes, compilar, etc.). Cada RUN genera una capa</li>
+                <li><b>ENV [VARIABLE=valor] </b>define una variable de entorno persistente en la imagen</li>
+                <li><b>USER [usuario] </b>establece el usuario con el que se ejecutarán las instrucciones siguientes y el proceso del contenedor</li>
+                <li><b>EXPOSE [puerto] </b>documenta el puerto que usará el contenedor (no lo publica en el anfitrión)</li>
+                <li><b>VOLUME ["/ruta"] </b>declara un punto de montaje como volumen: Docker creará un volumen anónimo ahí si al arrancar no se especifica uno</li>
+                <li><b>CMD ["comando", "arg"] </b>comando por defecto al arrancar el contenedor. Se puede sobreescribir al hacer <i>docker run</i></li>
+                <li><b>ENTRYPOINT ["comando", "arg"] </b>comando fijo al arrancar. No se sobreescribe con argumentos de <i>run</i>; para cambiarlo hay que usar <i>--entrypoint</i></li>
+                <li><b>ONBUILD [instrucción] </b>instrucción que se ejecutará automáticamente cuando otra imagen use esta como base (<i>FROM</i>). Útil para imágenes plantilla</li>
+            </ul>
+        </p>
+
+        <h3>docker build</h3>
+        <p><b>docker build -t [nombre]:[tag] [ruta] </b>- construye una imagen a partir de un Dockerfile.
+            <ul>
+                <li><b>-t [nombre]:[tag] </b>asigna nombre y tag a la imagen resultante</li>
+                <li>La <b>ruta</b> suele ser <i>.</i> (el directorio actual, donde está el Dockerfile). Ese directorio es el "contexto" que se envía a Docker</li>
+                <li><b>-f [archivo] </b>indica un Dockerfile con otro nombre o ubicación</li>
+                <li><b>--no-cache </b>ignora la caché de capas y reconstruye todo desde cero. Útil cuando una capa cacheada no está reflejando cambios (por ejemplo, para forzar que un <i>RUN apt update</i> se vuelva a ejecutar)</li>
+            </ul>
+        </p>
+
+        <h3>Volúmenes en la práctica</h3>
+        <p>(Ver la sección de Teoría para el concepto de volumen, bind mount y volumen gestionado.)</p>
+
+        <p><b>Bind mount </b>- montar una carpeta del anfitrión:
+            <ul>
+                <li><b>docker run -v [ruta_local]:[ruta_contenedor] [imagen] </b>- el contenedor ve la carpeta del anfitrión en la ruta indicada. Los cambios se reflejan en ambos lados en tiempo real. Es lo típico para desarrollar y ver los cambios de código sin reconstruir</li>
+                <li><b>docker run -v [ruta_local]:[ruta_contenedor]:ro [imagen] </b>- añade <i>:ro</i> para montar en solo lectura</li>
+            </ul>
+        </p>
+
+        <p><b>Volumen gestionado </b>- Docker lo administra:
+            <ul>
+                <li><b>docker run -v [nombre_volumen]:[ruta_contenedor] [imagen] </b>- si el volumen no existe, Docker lo crea automáticamente. Es la opción recomendada para datos de aplicaciones (bases de datos, etc.)</li>
+                <li><b>docker volume ls </b>- lista los volúmenes gestionados</li>
+                <li><b>docker volume create [nombre] </b>- crea un volumen con nombre de forma explícita</li>
+                <li><b>docker volume rm [nombre] </b>- elimina un volumen</li>
+                <li><b>docker volume inspect [nombre] </b>- muestra detalles del volumen (incluyendo la ruta real donde Docker lo guarda)</li>
+            </ul>
+        </p>
+
+        <p><b>Volúmenes desde el Dockerfile </b>- con la instrucción <i>VOLUME ["/ruta"]</i>. Al arrancar el contenedor, si no se indica un volumen concreto con <i>-v</i>, Docker crea un volumen anónimo para esa ruta.</p>
+
+        <p><b>--volumes-from </b>- reutilizar volúmenes de otro contenedor:
+            <ul>
+                <li><b>docker run --volumes-from [otro_contenedor] [imagen] </b>- el nuevo contenedor monta los mismos volúmenes que ya tiene el otro. Muy útil para tener un "contenedor de datos" que sirve de almacén compartido a varios contenedores</li>
+            </ul>
+        </p>
+
+        <p><b>Inspeccionar los volúmenes de un contenedor:</b>
+            <ul>
+                <li><b>docker inspect -f '{{.Mounts}}' [contenedor] </b>- muestra todos los puntos de montaje del contenedor: tipo (bind o volume), origen en el anfitrión y destino en el contenedor</li>
+            </ul>
+        </p>
+
+        <h3>Enlazar contenedores con --link</h3>
+        <p><b>docker run --link [contenedor_destino]:[alias] [imagen] </b>- permite que el nuevo contenedor se conecte a otro por nombre, sin necesidad de conocer su IP. Docker añade una entrada en el <i>/etc/hosts</i> del contenedor con el alias indicado y expone las variables de entorno del contenedor enlazado.
+            <ul>
+                <li>Ejemplo: <i>docker run --link mi_bbdd:db -d miapp</i> hace que dentro de <i>miapp</i> podamos acceder a la base de datos usando el nombre <i>db</i></li>
+            </ul>
+        </p>
+        <p><i>Nota: --link está considerado obsoleto (legacy). Actualmente lo recomendable es crear una red propia con </i><b>docker network create</b><i> y conectar los contenedores a ella; se resuelven por nombre igualmente. Aun así, se sigue viendo en muchos cursos y documentación.</i></p>
+    </section>
+</body>
+</html>

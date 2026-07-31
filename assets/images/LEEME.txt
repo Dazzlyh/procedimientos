@@ -1,0 +1,1 @@
+Coloca aquí las imágenes que referencian las páginas (ej: par_red_principal.png para configuracion_red.html)
